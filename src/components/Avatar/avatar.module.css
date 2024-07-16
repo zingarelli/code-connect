@@ -1,0 +1,19 @@
+.list {
+    list-style: none;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    column-gap: 8px;
+    margin: 0;
+    padding: 0;
+}
+
+.avatar {
+    height: 32px;
+}
+
+.username {
+    font-size: 15;
+    font-weight: 600;
+    color: var(--medium-gray);
+}

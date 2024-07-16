@@ -1,0 +1,5 @@
+.aside {
+    border-radius: 8px;
+    background-color: var(--dark-gray);
+    padding: 40px 16px;
+}

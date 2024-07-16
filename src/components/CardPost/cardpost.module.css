@@ -1,0 +1,47 @@
+.container {
+    background-color: var(--dark-gray);
+    color: var(--light-gray);
+    width: 486px;
+    border-radius: 8px;
+}
+
+.header {
+    padding: 24px;
+    background-color: var(--medium-gray);
+    border-radius: 8px 8px 0 0;
+}
+
+.headerFigure {
+    margin: 0;
+}
+
+.headerImg {
+    border-radius: 8px;
+}
+
+.body {
+    padding: 16px;
+}
+
+.section {
+    margin-bottom: 32px;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.content {
+    font-size: 15px;
+    margin: 0 0 8px 0;
+    text-align: justify;
+}
+
+.link {
+    font-size: 18px;
+    color: #81FE88;
+    margin: 0;
+    text-decoration: underline;
+}
