@@ -1,0 +1,4 @@
+{"level":"error","message":"Função getAllPosts --> erro ao obter as postagens da API"}
+{"level":"error","message":"Função getAllPosts --> erro de conexão com a API\n\tfetch failed"}
+{"level":"error","message":"Função getAllPosts --> erro de conexão com a API: fetch failed"}
+{"level":"error","message":"Função getAllPosts --> erro ao obter as postagens da API"}

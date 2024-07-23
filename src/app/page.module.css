@@ -1,0 +1,18 @@
+.posts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 56px auto;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    column-gap: 24px;
+}
+
+.navLink {
+    font-size: 18px;
+    color: #BFFFC3;
+    text-decoration: underline;
+}

@@ -10,10 +10,9 @@ body {
 .app-container {
   width: 1200px;
   max-width: 90%;
-  margin: auto;
-  padding: 56px 0;
+  margin: 56px auto;
   display: flex;
-  column-gap: 8px;
-  height: 100vh;
+  column-gap: 27px;
+  min-height: 100vh;
   box-sizing: border-box;
 }
