@@ -142,3 +142,46 @@ const getAllPosts = async () => {
   return resp.json();
 }
 ```
+
+## Exibição de markdown usando remark
+
+O Code Connect exibe postagens de tecnologia e, dentre o conteúdo em cada postagem, há uma seção que exibe códigos. Esses códigos são escritos em formato markdown.
+
+O [`remark`](https://github.com/remarkjs/remark) é uma biblioteca sugeria pelo Next para renderizar conteúdo markdown. Ele possui um plugin `remark-html` para conversão do conteúdo markdown para HTML.
+
+Instalação:
+
+    npm i remark remark-html
+
+Exemplo de uso convertendo um conteúdo markdown para HTML:
+
+```jsx
+// -- app/posts/[slug]/page.js
+import { remark } from "remark";
+import html from "remark-html";
+
+const markdownToHtml = async (data) => {
+    const processedContent = await remark()
+        .use(html) // html plugin for remark
+        .process(data) // markdown data
+    return processedContent.toString();
+}
+
+const getPostBySlug = async (slug) => {
+    // code omitted
+    // assume data is an array of objects 
+    // retrieved from the API
+    const post = data[0];
+    post.markdown = await markdownToHtml(post.markdown);
+    return post;
+}
+
+const PagePost = async ({ params }) => {
+    const post = await getPostBySlug(params.slug);
+
+    return (
+        <div dangerouslySetInnerHTML={{ __html: post.markdown }} />   
+    );
+}
+export default PagePost;
+```

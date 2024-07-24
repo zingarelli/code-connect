@@ -1,3 +1,7 @@
+.link {
+    text-decoration: none;
+}
+
 .container {
     background-color: var(--dark-gray);
     color: var(--light-gray);
@@ -39,7 +43,7 @@
     text-align: justify;
 }
 
-.link {
+.innerLink {
     font-size: 18px;
     color: #81FE88;
     margin: 0;

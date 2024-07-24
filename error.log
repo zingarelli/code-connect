@@ -2,3 +2,11 @@
 {"level":"error","message":"Função getAllPosts --> erro de conexão com a API\n\tfetch failed"}
 {"level":"error","message":"Função getAllPosts --> erro de conexão com a API: fetch failed"}
 {"level":"error","message":"Função getAllPosts --> erro ao obter as postagens da API"}
+{"level":"error","message":"Função getPostBySlug --> erro ao obter o post na API para o slug vuejs-para-iniciantes"}
+{"level":"error","message":"Função getPostBySlug --> erro ao obter o post na API para o slug introducao-ao-react"}
+{"level":"error","message":"Função getPostBySlug --> erro ao obter o post na API para o slug introducao-ao-react"}
+{"level":"error","message":"Função getPostBySlug --> erro ao obter o post na API para o slug introducao-ao-react"}
+{"level":"error","message":"Função getPostBySlug --> nenhum post obtido para o slug introducao-ao-"}
+{"level":"error","message":"Função getPostBySlug --> nenhum post obtido para o slug introducao-ao-"}
+{"level":"error","message":"Função getPostBySlug --> nenhum post obtido para o slug introducao-ao-"}
+{"level":"error","message":"Função getPostBySlug --> nenhum post obtido para o slug introducao-ao"}

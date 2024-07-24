@@ -3,7 +3,7 @@ import { CardPost } from "@/components/CardPost";
 import logger from "@/logger";
 import Link from 'next/link';
 
-const ITEMS_PER_PAGE = 2;
+const ITEMS_PER_PAGE = 6;
 
 // server-side fetch
 const getAllPosts = async (page) => {
