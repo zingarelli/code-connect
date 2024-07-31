@@ -147,7 +147,7 @@ const getAllPosts = async () => {
 
 O Code Connect exibe postagens de tecnologia e, dentre o conteúdo em cada postagem, há uma seção que exibe códigos. Esses códigos são escritos em formato markdown.
 
-O [`remark`](https://github.com/remarkjs/remark) é uma biblioteca sugeria pelo Next para renderizar conteúdo markdown. Ele possui um plugin `remark-html` para conversão do conteúdo markdown para HTML.
+O [`remark`](https://github.com/remarkjs/remark) é uma biblioteca sugerida pelo Next para renderizar conteúdo markdown. Ele possui um plugin `remark-html` para conversão do conteúdo markdown para HTML.
 
 Instalação:
 
