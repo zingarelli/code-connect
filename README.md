@@ -37,9 +37,11 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
 
-## JSON Server
+## Versão inicial com JSON Server
 
-Iremos mockar o back end utilizando o JSON Server.
+A primeira versão do projeto utiliza um back end mockado por meio do JSON Server. Dê uma olhada na [Seção sobre a versão FullStack](#versão-fullstack) para saber mais sobre as tecnologias utilizadas na evolução deste projeto.
+
+> A versão inicial que se encontra na **branch main**.
 
 Para isso, crie uma pasta foram da pasta da aplicação e salve [este arquivo JSON](https://raw.githubusercontent.com/viniciosneves/code-connect-assets/main/posts.json) nesta pasta. O arquivo servirá como o banco de dados de postagens a serem exibidas na aplicação. 
 
@@ -94,6 +96,73 @@ export default async function Home({ searchParams }) {
 ```
 
 A prop `searchParams` é fornecida pelo Next para acessarmos as query string da URL da página. O acesso é feito como se fosse um objeto.
+
+## Versão FullStack
+
+A segunda versão do projeto utiliza o [Docker Compose](https://docs.docker.com/compose/) para subir um banco de dados Postgres (versão 15). Para interação com este banco por meio do Next, utilizamos o ORM [Prisma](https://www.prisma.io/).
+
+> A versão FullStack se encontra na **branch postgres_prisma**.
+
+### Docker Compose
+
+A configuração para subir o contêiner com o serviço do Postgres está no arquivo `docker-compose.yaml`. Utilizamos o comando `docker compose up -d` para baixar os arquivos necessários e criar o contêiner.
+
+### Prisma 
+
+O Prisma é um [ORM (Object Relational Mapper)](https://www.prisma.io/dataguide/types/relational/what-is-an-orm). Isso significa que ele atua, no caso do projeto, como um intermediador entre as linguagens SQL e JavaScript. Assim, podemos focar nas estruturas e códigos no Next, criando tabelas e consultas utilizando objetos em JS, e deixar que o Prisma se responsabilize por se comunicar com o banco de dados e "traduzir" em SQL aquilo que queremos. 
+
+Para adicionar o Prisma ao projeto, usamos o comando `npm i prisma`.
+
+Para criar os arquivos iniciais para utilização do Prisma, o comando é `npx prisma init`. Caso ele ainda não esteja instalado na máquina, este comando também irá fazer a instalação. 
+
+Iniciado o Prisma, uma pasta `prisma` será criada no projeto com um arquivo `schema.prisma`. Neste arquivo definimos qual SGBD será utilizado e também criamos os objetos que representarão as tabelas e seus relacionamentos. 
+
+Também será criado um arquivo `.env`, onde são definidas variáveis de ambiente. O prisma irá consultar esse arquivo para obter as credenciais de conexão ao banco.
+
+> O arquivo `.env` contém dados sensíveis de acesso ao projeto, então **não o versione** nem o compartilhe em ambiente de produção.
+
+#### Criação do banco de dados
+
+Supondo que vamos criar o banco do zero, definimos as tabelas e relacionamentos no arquivo `schema.prisma` e rodamos o comando abaixo para efetuar a chamada "migração" (*migration*). Esta é a ação que irá criar de fato o banco de dados e suas tabelas no Postgres.
+
+    npx prisma migrate dev --name init
+
+- `dev` indica que estamos em um ambiente de desenvolvimento
+
+- `--name init` é a forma de darmos um nome a essa migração, de modo a facilitar identificá-la quando houver outras migrações. Você pode escolher o nome que quiser.
+
+- a pasta `prisma/migrations` contém pastas com os arquivos SQL criados pelo Prisma.
+
+Exemplo de como criar tabelas (models) no `schema.prisma`, incluindo chaves primárias e estrangeira, e relacionamentos:
+
+```js
+// @id indicates this property as primary key
+// @default is a default value; in this case, it will use the autoincrement function to generate an integer
+// @unique indicates that the value cannot be repeated between records (rows)
+// Post Post[] indicates a 1:N relationship between User and Post
+model User {
+  id Int @id @default(autoincrement())
+  name String
+  username String @unique
+  avatar String
+  Post Post[]
+}
+
+// @updatedAt automatically updates the time when a record is updated
+// @relation configures foreign keys to indicate a connection between tables
+model Post {
+  id Int @id @default(autoincrement())
+  cover String
+  title String
+  slug String @unique
+  body String
+  markdown String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId Int
+  author User @relation(fields: [authorId], references: [id])
+}
+```
 
 ## Monitoramento de logs usando o winston
 
