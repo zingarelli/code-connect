@@ -107,15 +107,17 @@ A segunda versão do projeto utiliza o [Docker Compose](https://docs.docker.com/
 
 A configuração para subir o contêiner com o serviço do Postgres está no arquivo `docker-compose.yaml`. Utilizamos o comando `docker compose up -d` para baixar os arquivos necessários e criar o contêiner.
 
+No caso de reiniciar o contêiner (por exemplo, se a máquina foi reiniciada e o Docker Desktop também tenha sido reiniciado), você poder usar o comando `docker compose start`.
+
 ### Prisma 
 
-O Prisma é um [ORM (Object Relational Mapper)](https://www.prisma.io/dataguide/types/relational/what-is-an-orm). Isso significa que ele atua, no caso do projeto, como um intermediador entre as linguagens SQL e JavaScript. Assim, podemos focar nas estruturas e códigos no Next, criando tabelas e consultas utilizando objetos em JS, e deixar que o Prisma se responsabilize por se comunicar com o banco de dados e "traduzir" em SQL aquilo que queremos. 
+O Prisma é um [ORM (Object Relational Mapper)](https://www.prisma.io/dataguide/types/relational/what-is-an-orm). Isso significa que ele atua, no caso do projeto, como um **intermediador entre as linguagens SQL e JavaScript** (ele também trabalha com outras linguagens). Assim, podemos focar nas estruturas e códigos no Next, criando tabelas e consultas utilizando objetos em JS, e deixar que o Prisma se responsabilize por se comunicar com o banco de dados e "traduzir" em SQL aquilo que queremos. 
 
-Para adicionar o Prisma ao projeto, usamos o comando `npm i prisma`.
+- Para adicionar o Prisma ao projeto, usamos o comando `npm i prisma`.
 
-Para criar os arquivos iniciais para utilização do Prisma, o comando é `npx prisma init`. Caso ele ainda não esteja instalado na máquina, este comando também irá fazer a instalação. 
+- Para criar os arquivos iniciais para utilização do Prisma, o comando é `npx prisma init`. Caso ele ainda não esteja instalado na máquina, este comando também irá fazer a instalação. 
 
-Iniciado o Prisma, uma pasta `prisma` será criada no projeto com um arquivo `schema.prisma`. Neste arquivo definimos qual SGBD será utilizado e também criamos os objetos que representarão as tabelas e seus relacionamentos. 
+Iniciado o Prisma, uma pasta `prisma` será criada na raiz do projeto com um arquivo `schema.prisma`. Neste arquivo definimos qual SGBD será utilizado e também criamos os objetos que representarão as tabelas e seus relacionamentos (daí o nome *Object Relational Mapper*). 
 
 Também será criado um arquivo `.env`, onde são definidas variáveis de ambiente. O prisma irá consultar esse arquivo para obter as credenciais de conexão ao banco.
 
@@ -161,6 +163,129 @@ model Post {
   updatedAt DateTime @updatedAt
   authorId Int
   author User @relation(fields: [authorId], references: [id])
+}
+```
+
+#### Prisma Client
+
+É uma classe disponibilizada pelo Prisma para fazer consultas e as demais operações de CRUD na base de dados, sem usar SQL. 
+
+O client é criado pelo seguinte comando:
+
+    npx prisma generate
+
+Esse comando deve ser utilizado toda vez que houver alguma mudança no banco (alguma alteração no `schema.prisma`), para garantir que o client esteja atualizado com qualquer alteração dos modelos, tipos e relacionamentos.
+
+Para disponibilizar o client para uso na aplicação, uma sugestão é criar um arquivo `db.js` na pasta prisma e exportar o client. 
+
+```js
+// --- prisma/db.js
+import { PrismaClient } from '@prisma/client';
+const db = new PrismaClient();
+export default db;
+```
+
+#### Seed de dados
+
+Você pode usar o Prisma para popular (semear) o banco de dados. Para isso, criamos um comando `seed` no `package.json`, e usamos o comando `npx prisma db seed` para popular o banco.
+
+No exemplo a seguir, o arquivo `prisma/seed.js` será executado e irá popular o banco de dados.
+
+```json
+// --- package.json
+{
+  "name": "code-connect",
+  // code omitted
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+  // code omitted
+}
+```
+
+O próximo exemplo mostra a inserção de um novo dado à tabela "Author":
+
+```js
+// --- prisma/seed.js
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+async function main() {
+    // --- creating author "Ana Beatriz"
+    const author = {
+        name: "Ana Beatriz",
+        username: "anabeatriz_dev",
+        avatar: "https://raw.githubusercontent.com/viniciosneves/code-connect-assets/main/authors/anabeatriz_dev.png",
+    };
+
+    // upsert will perform an insert or update in the database
+    // based on a condition passed to the where property
+    const ana = await prisma.user.upsert({
+        where: { username: author.username },
+        update: {}, // we won't perform any updates for now
+        create: author
+    });
+
+    console.log('Author created: ', ana);
+}
+
+main()
+    .then(async () => {
+        await prisma.$disconnect()
+    })
+    .catch(async (e) => {
+        console.error(e)
+        await prisma.$disconnect()
+        process.exit(1)
+    })
+```
+
+Link do Prisma sobre seeding, incluindo exemplos em JS e TS: https://www.prisma.io/docs/orm/prisma-migrate/workflows/seeding.
+
+#### Fetch de dados
+
+Por meio do prisma client, podemos acessar as tabelas do banco como se fossem objetos do client. Esses objetos possuem métodos para fazer consultas.
+
+No exemplo a seguir, usamos o método `findMany` para recuperar os dados da tabela post. Essa tabela possui uma relação com a tabela author (uma chave estrangeira para o id do autor), então podemos passar via parâmetro um objeto de configuração com a propriedade `include` para também recuperar dados da tabela author. Além disso, também está implementada a lógica para paginação (utilizando as propriedades `take` e `skip`) e a ordenação pela data de criação do post (propriedade `orderBy`);
+
+```js
+import db from '../../prisma/db';
+
+const ITEMS_PER_PAGE = 6;
+
+// server-side fetch using Prisma client
+const getAllPosts = async (page) => {
+  try {
+    // logic for previous page
+    const prev = page > 1 ? page - 1 : null;
+
+    // logic for next page, based on the number of items in the database
+    const totalItems = await db.post.count(); // SELECT count(*) FROM post
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE); 
+    const next = page < totalPages ? page + 1 : null;
+
+    // logic to get the items for the next page
+    const skip = (page - 1) * ITEMS_PER_PAGE;
+
+    // similar to a SELECT * FROM post
+    const posts = await db.post.findMany({
+      // use include property to also return data of another table
+      // when there's a relationship between them (similar to a JOIN)
+      include: {
+        author: true
+      },
+      // pagination
+      take: ITEMS_PER_PAGE,
+      skip,
+      // sorting 
+      orderBy: { createdAt: 'desc' }
+    });
+    return { data: posts, prev, next };
+  }
+  catch (error) {
+    logger.error(`[${new Date().toString()}] Função getAllPosts --> erro de conexão com a API: ${error}`);
+    return { data: [], prev: null, next: null };
+  }
 }
 ```
 

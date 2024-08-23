@@ -2,31 +2,48 @@ import styles from './page.module.css';
 import { CardPost } from "@/components/CardPost";
 import logger from "@/logger";
 import Link from 'next/link';
+import db from '../../prisma/db';
 
 const ITEMS_PER_PAGE = 6;
 
-// server-side fetch
+// server-side fetch using Prisma client
 const getAllPosts = async (page) => {
-  const resp = await fetch(`http://localhost:3042/posts?_page=${page}&_per_page=${ITEMS_PER_PAGE}`)
-    .catch(error => {
-      logger.error(`Função getAllPosts --> erro de conexão com a API: ${error.message}`);
-      return null;
-    });
-  if (!resp || !resp.ok) {
-    // this console.log will be displayed in the TERMINAL
-    // because this is a server-side component
-    // console.log('Função getAllPosts --> erro ao obter as postagens da API');
+  try {
+    // logic for previous page
+    const prev = page > 1 ? page - 1 : null;
 
-    // using winston for logging
-    logger.error('Função getAllPosts --> erro ao obter as postagens da API');
-    return [];
+    // logic for next page, based on the number of items in the database
+    const totalItems = await db.post.count(); // SELECT count(*) FROM post
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE); 
+    const next = page < totalPages ? page + 1 : null;
+
+    // logic to get the items for the next page
+    const skip = (page - 1) * ITEMS_PER_PAGE;
+
+    // similar to a SELECT * FROM post
+    const posts = await db.post.findMany({
+      // use include property to also return data of another table
+      // when there's a relationship between them (similar to a JOIN)
+      include: {
+        author: true
+      },
+      // pagination
+      take: ITEMS_PER_PAGE,
+      skip,
+      // sorting 
+      orderBy: { createdAt: 'desc' }
+    });
+    return { data: posts, prev, next };
   }
-  logger.info('Função getAllPosts --> posts obtidos com sucesso');
-  return resp.json();
+  catch (error) {
+    logger.error(`[${new Date().toString()}] Função getAllPosts --> erro de conexão com a API: ${error}`);
+    return { data: [], prev: null, next: null };
+  }
 }
 
 export default async function Home({ searchParams }) {
-  const currentPage = searchParams?.page || 1;
+  // URL parameters are returned as strings
+  const currentPage = parseInt(searchParams?.page || 1);
 
   // destructuring JSON Server response when paginating
   const { data: posts, prev, next } = await getAllPosts(currentPage);
