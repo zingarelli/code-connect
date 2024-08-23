@@ -5,6 +5,8 @@ body {
   --light-gray: #BCBCBC;
   --medium-gray: #888888;
   --dark-gray: #171D1F;
+  --light-green: #81FE88;
+  --pastel-green: #BFFFC3;
 }
 
 .app-container {

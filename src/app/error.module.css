@@ -1,0 +1,28 @@
+.container {
+    width: 995px;
+    text-align: center;
+}
+
+.title {
+    font-weight: 500;
+    font-size: 37px;
+    color: var(--light-green);
+    margin: 56px auto 16px;
+}
+
+.content {
+    margin: 0 auto 40px;
+    font-weight: 400;
+    font-size: 26px;
+    color: var(--light-gray);
+}
+
+.link {
+    color: var(--pastel-green);
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.link svg {
+    margin-left: 8px;
+}
