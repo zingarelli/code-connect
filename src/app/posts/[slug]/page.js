@@ -4,6 +4,8 @@ import logger from "@/logger";
 import Image from "next/image";
 import { remark } from "remark";
 import html from "remark-html";
+import db from "../../../../prisma/db";
+import { redirect } from "next/navigation";
 
 const markdownToHtml = async (data) => {
     const processedContent = await remark()
@@ -13,31 +15,32 @@ const markdownToHtml = async (data) => {
 }
 
 const getPostBySlug = async (slug) => {
-    const url = `http://localhost:3042/posts/?slug=${slug}`;
-    const resp = await fetch(url)
-        .catch(error => {
-            logger.error(`Função getPostBySlug --> erro de conexão com a API: ${error.message}`);
-            return null; // this return is assigned to the variable "resp"
+    try {
+        const post = await db.post.findFirst({
+            where: {
+                slug
+            },
+            include: {
+                author: true
+            }
         });
 
-    if (!resp || !resp.ok) {
-        logger.error(`Função getPostBySlug --> erro ao obter o post na API para o slug ${slug}`);
-        return {};
+        if(!post) {
+            throw new Error(`Não foi encontrado post para o slug ${slug}`);
+        }
+
+        logger.info(`[${new Date().toString()}] Função getPostBySlug --> post obtido com sucesso para o slug ${slug}`);
+
+        post.markdown = await markdownToHtml(post.markdown);
+
+        return post;
+    }
+    catch (error) {
+        logger.error(`[${new Date().toString()}] Função getPostBySlug --> erro ao obter o post na API para o slug ${slug}. Mensagem de erro: ${error.message}`);
     }
 
-    const data = await resp.json();
-    if (data.length === 0) {
-        logger.error(`Função getPostBySlug --> nenhum post obtido para o slug ${slug}`);
-        return {};
-    }
-
-    logger.info(`Função getPostBySlug --> post obtido com sucesso para o slug ${slug}`);
-
-    // retrieve only the first post (case more than one is retrieved)
-    const post = data[0];
-    post.markdown = await markdownToHtml(post.markdown);
-
-    return post;
+    // redirect to 404 page if an error happened
+    redirect('/not-found');
 }
 
 const PagePost = async ({ params }) => {
