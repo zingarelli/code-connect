@@ -1,0 +1,28 @@
+.form {
+    height: 51px;
+    display: flex;
+    column-gap: 8px;
+    margin-bottom: 56px;
+}
+
+.input {
+    background: no-repeat 16px/24px url('/search.png') var(--dark-gray);
+    color: var(--light-gray);
+    padding: 8px 16px 8px 56px;
+    border: none;
+    border-radius: 4px;
+    flex-grow: 1;
+    font-size: 22px;
+    position: relative;
+}
+
+.button {
+    width: 92px;
+    background-color: var(--light-green);
+    color: var(--dark-green);
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
