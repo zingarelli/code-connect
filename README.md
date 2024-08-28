@@ -95,7 +95,7 @@ export default async function Home({ searchParams }) {
 }
 ```
 
-A prop `searchParams` é fornecida pelo Next para acessarmos as query string da URL da página. O acesso é feito como se fosse um objeto.
+A prop `searchParams` é fornecida pelo Next para acessarmos os parâmetros contidos na query string da URL da página. O acesso é feito como se fosse um objeto.
 
 ## Versão FullStack
 
@@ -119,7 +119,7 @@ O Prisma é um [ORM (Object Relational Mapper)](https://www.prisma.io/dataguide/
 
 Iniciado o Prisma, uma pasta `prisma` será criada na raiz do projeto com um arquivo `schema.prisma`. Neste arquivo definimos qual SGBD será utilizado e também criamos os objetos que representarão as tabelas e seus relacionamentos (daí o nome *Object Relational Mapper*). 
 
-Também será criado um arquivo `.env`, onde são definidas variáveis de ambiente. O prisma irá consultar esse arquivo para obter as credenciais de conexão ao banco.
+Também será criado um arquivo `.env`, onde são definidas variáveis de ambiente. O Prisma irá consultar esse arquivo para obter as credenciais de conexão ao banco.
 
 > O arquivo `.env` contém dados sensíveis de acesso ao projeto, então **não o versione** nem o compartilhe em ambiente de produção.
 
@@ -129,15 +129,15 @@ Supondo que vamos criar o banco do zero, definimos as tabelas e relacionamentos 
 
     npx prisma migrate dev --name init
 
-- `dev` indica que estamos em um ambiente de desenvolvimento
+- `dev` indica que estamos em um ambiente de desenvolvimento;
 
-- `--name init` é a forma de darmos um nome a essa migração, de modo a facilitar identificá-la quando houver outras migrações. Você pode escolher o nome que quiser.
+- `--name init` é a forma de darmos um nome a essa migração, de modo a facilitar identificá-la quando houver outras migrações. Você pode escolher o nome que quiser;
 
 - a pasta `prisma/migrations` contém pastas com os arquivos SQL criados pelo Prisma.
 
 Exemplo de como criar tabelas (models) no `schema.prisma`, incluindo chaves primárias e estrangeira, e relacionamentos:
 
-```js
+```prisma
 // @id indicates this property as primary key
 // @default is a default value; in this case, it will use the autoincrement function to generate an integer
 // @unique indicates that the value cannot be repeated between records (rows)
@@ -174,7 +174,7 @@ O client é criado pelo seguinte comando:
 
     npx prisma generate
 
-Esse comando deve ser utilizado toda vez que houver alguma mudança no banco (alguma alteração no `schema.prisma`), para garantir que o client esteja atualizado com qualquer alteração dos modelos, tipos e relacionamentos.
+Esse comando deve ser **utilizado toda vez que houver alguma mudança no banco** (alguma alteração no `schema.prisma`), para garantir que o client esteja atualizado com qualquer alteração dos modelos, tipos e relacionamentos.
 
 Para disponibilizar o client para uso na aplicação, uma sugestão é criar um arquivo `db.js` na pasta prisma e exportar o client. 
 
@@ -189,17 +189,14 @@ export default db;
 
 Você pode usar o Prisma para popular (semear) o banco de dados. Para isso, criamos um comando `seed` no `package.json`, e usamos o comando `npx prisma db seed` para popular o banco.
 
-No exemplo a seguir, o arquivo `prisma/seed.js` será executado e irá popular o banco de dados.
+O exemplo a seguir mostra como seria o comando incluído no `package.json`. O arquivo `prisma/seed.js` será executado pelo node e irá popular o banco de dados.
 
 ```json
 // --- package.json
 {
-  "name": "code-connect",
-  // code omitted
   "prisma": {
     "seed": "node prisma/seed.js"
   }
-  // code omitted
 }
 ```
 
@@ -207,7 +204,7 @@ O próximo exemplo mostra a inserção de um novo dado à tabela "Author":
 
 ```js
 // --- prisma/seed.js
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require('@prisma/client'); // neste caso, precisamos usar require
 const prisma = new PrismaClient();
 
 async function main() {
@@ -244,9 +241,9 @@ Link do Prisma sobre seeding, incluindo exemplos em JS e TS: https://www.prisma.
 
 #### Fetch de dados
 
-Por meio do prisma client, podemos acessar as tabelas do banco como se fossem objetos do client. Esses objetos possuem métodos para fazer consultas.
+Por meio do prisma client, podemos acessar as **tabelas** do banco (os models no `schema.prisma`) como se fossem **objetos do client**. Esses objetos possuem métodos para fazer consultas.
 
-No exemplo a seguir, usamos o método `findMany` para recuperar os dados da tabela post. Essa tabela possui uma relação com a tabela author (uma chave estrangeira para o id do autor), então podemos passar via parâmetro um objeto de configuração com a propriedade `include` para também recuperar dados da tabela author. Além disso, também está implementada a lógica para paginação (utilizando as propriedades `take` e `skip`) e a ordenação pela data de criação do post (propriedade `orderBy`);
+No exemplo a seguir, usamos o método **`findMany`** para recuperar os dados da tabela post. Essa tabela possui uma relação com a tabela author (uma chave estrangeira para o id do autor), então podemos passar via parâmetro um objeto de configuração com a propriedade `include` para também recuperar dados da tabela author. Além disso, também está implementada a lógica para paginação (utilizando as propriedades `take` e `skip`) e a ordenação pela data de criação do post (propriedade `orderBy`);
 
 ```js
 import db from '../../prisma/db';
@@ -267,7 +264,7 @@ const getAllPosts = async (page) => {
     // logic to get the items for the next page
     const skip = (page - 1) * ITEMS_PER_PAGE;
 
-    // similar to a SELECT * FROM post
+    // similar to SELECT * FROM post
     const posts = await db.post.findMany({
       // use include property to also return data of another table
       // when there's a relationship between them (similar to a JOIN)

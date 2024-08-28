@@ -9,15 +9,15 @@ const prompt = Prompt({
 });
 
 export default function Searchbar({ }) {
-    const searchSubmit = e => {
-        e.preventDefault();
-    }
-
-    return <form className={styles.form} onSubmit={searchSubmit}>
-        <input 
-            type="text" 
-            placeholder="Digite o que você procura" 
-            className={`${styles.input} ${prompt.className}`} 
+    return <form
+        className={styles.form}
+        action='/'
+    >
+        <input
+            name='q' // name to be displayed in the query string of the URL
+            type="text"
+            placeholder="Digite o que você procura"
+            className={`${styles.input} ${prompt.className}`}
         />
         <button className={`${styles.button} ${prompt.className}`} >Buscar</button>
     </form>
