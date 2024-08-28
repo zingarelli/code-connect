@@ -286,6 +286,53 @@ const getAllPosts = async (page) => {
 }
 ```
 
+### Deploy FullStack na Vercel
+
+A Vercel possibilita criarmos um banco de dados e integrá-lo ao deploy da aplicação. Para isso, precisamos fazer alguns ajustes no projeto e também na Vercel.
+
+Para o uso do Prisma, a Vercel solicita duas variáveis de ambiente, então precisamos alterar o `schema.prisma`:
+
+```prisma
+datasource db {
+  provider  = "postgresql"
+  // Uses connection pooling
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+```
+
+Para manter o sincronismo com o projeto rodando localmente, adicionamos essas variáveis também ao `.env`:
+
+```
+POSTGRES_PRISMA_URL="postgresql://postgres@localhost:5432/codeconnect_dev"
+POSTGRES_URL_NON_POOLING="postgresql://postgres@localhost:5432/codeconnect_dev"
+```
+
+Por fim, ajustamos o `package.json`, adicionando os passos do Prisma para o script de `build` (a Vercel irá chamar esse comando durante o deploy):
+
+```json
+{  
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && prisma migrate dev && prisma db seed && next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+}
+```
+
+Na Vercel, precisamos adicionar um banco Postgres, disponibilizado pela plataforma. Para o caso deste projeto, a versão free (hobby) está disponível. 
+
+- Acesse a página do projeto na Vercel;
+
+- Vá até a aba "Storage";
+
+- Clique no botão "Create" ao lado do item "Postgres";
+
+- Use todas as opções padrão nas próximas janelas.
+
+> A página do projeto na Vercel só aparece após o primeiro deploy. Então faça o primeiro deploy, que irá gerar um erro por não ter um banco de dados, e aí então crie um banco Postgres e faça um redeploy.
+
 ## Monitoramento de logs usando o winston
 
 O "winston" é uma biblioteca especializada em criar diferentes tipos de logs para uma aplicação.
