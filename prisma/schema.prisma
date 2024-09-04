@@ -22,26 +22,51 @@ datasource db {
 // @id indicates this property as primary key
 // @default is a default value; in this case, it will use the autoincrement function to generate an integer
 // @unique indicates that this value cannot be repeated between records (rows)
-// Post Post[] indicates a 1:N relationship between User and Post
+// post Post[] indicates a 1:N relationship between User and Post
+// same for comment Comment[]
 model User {
-  id       Int    @id @default(autoincrement())
+  id       Int       @id @default(autoincrement())
   name     String
-  username String @unique
+  username String    @unique
   avatar   String
-  Post     Post[]
+  post     Post[]
+  comment  Comment[]
 }
 
 // @updatedAt automatically updates the time when a record is updated
 // @relation configures foreign keys to indicate a connection between tables
 model Post {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   cover     String
   title     String
-  slug      String   @unique
+  slug      String    @unique
   body      String
   markdown  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   authorId  Int
-  author    User     @relation(fields: [authorId], references: [id])
+  author    User      @relation(fields: [authorId], references: [id])
+  comments  Comment[]
+  likes     Int       @default(0)
+}
+
+// A comment may have children comments (replies to a comment).
+// Comment will have two fields of type Comment for the same relation,
+// so in order to indicate a self relation, we add a name to the
+// relation.
+// Adding "?" indicates that a field is optional
+model Comment {
+  id        Int       @id @default(autoincrement())
+  text      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  authorId  Int
+  author    User      @relation(fields: [authorId], references: [id])
+  postId    Int
+  post      Post      @relation(fields: [postId], references: [id])
+  // optional parentId if this comment is referencing another
+  // comment (a reply to a parent comment)
+  parentId  Int?
+  parent    Comment?  @relation("parentComment", fields: [parentId], references: [id])
+  children  Comment[] @relation("parentComment")
 }
