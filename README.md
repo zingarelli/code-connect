@@ -445,3 +445,116 @@ const PagePost = async ({ params }) => {
 }
 export default PagePost;
 ```
+
+### Server Actions
+
+Server Actions são funções assíncronas que você pode criar em seu projeto Next, e que podem ser invocadas tanto por client components quanto por server components. Essas funções são **executadas no lado do servidor**. 
+
+Um exemplo comum é invocá-las na submissão de um formulário, usando o atributo `action` do elemento `form`. Um aspecto interessante do Next é que essa submissão **não** irá causar um recarregamento da página.
+
+- Podemos passar argumentos para uma Server Action usando a função `bind`. Isso é necessário, pois a função está rodando no servidor, então temos que "emprestá-la" do servidor para o componente que vai invocá-la;
+
+- Caso uma Server Action resulte em uma ação que atualiza algum campo da página, você pode usar a função `revalidatePath` para que o Next faça as alterações necessárias na UI (sem recarregar a página inteira).
+
+- Server Actions também podem ser invocadas da maneira tradicional, por meio de eventos ou hooks como `useEffect`.
+
+- Podemos utilizar o hook `useFormStatus` do React para verificar se uma ação está pendente. Isso é útil para exibirmos um ícone de carregamento enquanto a ação não termina, por exemplo.
+
+  - até 2024, este hook se encontra [disponível de forma experimental](https://react.dev/reference/react-dom/hooks/useFormStatus) no React;
+
+  - o hook só funciona se o componente for renderizado dentro de um elemento `form`;
+
+  - o componente que utiliza o hook deve ser um client component. Você pode, por exemplo, abstrair o pedaço de código que usa o hook em um componente separado e aí informar que será um client component.
+
+Ao criar uma server action, é uma **boa prática deixar explícito** no arquivo que a função deve ser executada no servidor, utilizando a diretiva `'use server'`. 
+
+Outra boa prática é colocar as actions em uma pasta separada, por exemplo: `src/actions/index.js`.
+
+Exemplo de Server Action para incrementar o número de curtidas: 
+
+```js
+// explicit tell Next that this file is to run in the server
+'use server';
+
+import { revalidatePath } from "next/cache";
+import db from "../../prisma/db";
+
+// server action to increment the number of likes for a post
+export async function incrementThumbsUp(post){
+    await db.post.update({
+        where: { 
+            id: post.id 
+        },
+        data: {
+            // we can pass an object with an "increment" property
+            // to let Prisma increment the current value of a field 
+            // by a value of X (increment likes by 1 in this case)
+            likes: {
+                increment: 1
+            }
+        }
+    });
+
+    // clear cache to update the UI of pages affected by this action
+    revalidatePath('/');
+    revalidatePath(`/${post.slug}`);
+}
+```
+
+Exemplo de chamada utilizando a `action` de um elemento `form`. Parte não relevante do código foi omitida para economizar espaço. 
+
+```jsx
+import { incrementThumbsUp } from '@/actions';
+
+export const CardPost = ({ post }) => {
+    // using bind to pass additional arguments to the Server Action
+    const submitThumbsUp = incrementThumbsUp.bind(null, post);
+    
+    return (
+        <form action={submitThumbsUp}>
+              <ThumbsUpButton />
+              <p>{post.likes}</p>
+        </form>
+    );
+}
+```
+
+Mesmo exemplo, dessa vez utilizando o evento de submit do `form`. Neste caso, é necessário transformar o componente em um client component e, por conta disso, impedir o recarregamento da página com `preventDefault`:
+
+```jsx
+'use client'
+
+import { incrementThumbsUp } from '@/actions';
+
+export const CardPost = ({ post }) => {
+    // using bind to pass additional arguments to the Server Action
+    const submitThumbsUp = incrementThumbsUp.bind(null, post);
+
+    const handleSubmit = e => {
+        e.preventDefault();
+        submitThumbsUp();
+    }
+    
+    return (
+        <form onSubmit={handleSubmit}>
+            <ThumbsUpButton />
+            <p>{post.likes}</p>
+        </form>
+    );
+}
+```
+
+O `ThumbsUpButton` é um client component que vai renderizar um botão ou um spinner, baseado no estado da ação. Parte não relevante do código foi omitida para economizar espaço. :
+
+```jsx
+'use client';
+
+import { useFormStatus } from "react-dom"
+
+export const ThumbsUpButton = () => {
+    const { pending } = useFormStatus();
+    return <IconButton disabled={pending}>
+        {pending ? <Spinner /> : <ThumbsUp />}
+    </IconButton>
+}
+```
