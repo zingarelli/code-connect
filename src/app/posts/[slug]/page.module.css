@@ -1,52 +1,18 @@
-.article {
-    color: var(--light-gray);
-    width: 993px;
+.code {
+    margin: 24px 0 40px;
 }
 
-.header {
-    height: 348px;
-    background-color: #848484;
-    border-radius: 8px 8px 0 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.headerFigure {
-    position: relative;
-}
-
-.headerImg {
-    border-radius: 8px;
-}
-
-.body {
-    background-color: var(--dark-gray);
-    padding: 16px;
-    margin-bottom: 24px;
-    border-radius: 0 0 8px 8px;
-}
-
-.title, .codeTitle {
+.codeTitle {
     font-size: 22px;
     font-weight: 600;
     line-height: 33px;
     margin: 0 0 8px 0;
-}
-
-.content {
-    margin: 0 0 32px 0;
-    font-size: 15px;
-    line-height: 23px;
-    text-align: justify;
-}
-
-.codeTitle {
     color: var(--medium-gray);
 }
 
 .markdown {
     background-color: var(--dark-gray);
+    color: var(--light-gray);
     height: 252px;
     padding: 16px;
     font-size: 15px;

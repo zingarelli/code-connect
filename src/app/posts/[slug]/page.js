@@ -6,6 +6,7 @@ import { remark } from "remark";
 import html from "remark-html";
 import db from "../../../../prisma/db";
 import { redirect } from "next/navigation";
+import { CardPost } from "@/components/CardPost";
 
 const markdownToHtml = async (data) => {
     const processedContent = await remark()
@@ -26,7 +27,7 @@ const getPostBySlug = async (slug) => {
             }
         });
 
-        if(!post) {
+        if (!post) {
             throw new Error(`Não foi encontrado post para o slug ${slug}`);
         }
 
@@ -47,36 +48,12 @@ const getPostBySlug = async (slug) => {
 const PagePost = async ({ params }) => {
     const post = await getPostBySlug(params.slug);
 
-    return (<article className={styles.article}>
-        <header className={styles.header}>
-            <figure className={styles.headerFigure}>
-                <Image
-                    src={post.cover}
-                    // fill
-                    width={960}
-                    height={300}
-                    alt={`Capa do post ${post.title}`}
-                    className={styles.headerImg}
-                />
-            </figure>
-        </header>
-        <section className={styles.body}>
-            <h2 className={styles.title}>
-                {post.title}
-            </h2>
-            <p className={styles.content}>{post.body}</p>
-            <footer>
-                <Avatar
-                    imageSrc={post.author.avatar}
-                    username={post.author.username}
-                />
-            </footer>
-        </section>
+    return (<>
+        <CardPost post={post} highlight />
         <section className={styles.code}>
             <h2 className={styles.codeTitle}>Código:</h2>
             <div className={styles.markdown} dangerouslySetInnerHTML={{ __html: post.markdown }} />
         </section>
-    </article>
-    );
+    </>);
 }
 export default PagePost;
