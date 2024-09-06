@@ -21,7 +21,8 @@ const getPostBySlug = async (slug) => {
                 slug
             },
             include: {
-                author: true
+                author: true,
+                comments: true
             }
         });
 

@@ -1,0 +1,27 @@
+/* add an opaque dark color beneath the dialog, covering the whole screen */
+.dialog::backdrop {
+  background-color: #171D1F;
+  opacity: 0.8;
+}
+
+.dialog {
+    width: 961px;
+    max-width: 80%;
+    padding: 24px;
+    background-color: #3E3E3F;
+    border: none;
+    border-radius: 0 0 32px 32px;
+}
+
+.header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.closeBtn {
+    font-size: 18px;
+    color: #E1E1E1;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}

@@ -2,13 +2,15 @@ import styles from './cardpost.module.css';
 import Image from "next/image";
 import { Avatar } from "../Avatar";
 import Link from 'next/link';
-import { incrementThumbsUp } from '@/actions';
+import { incrementThumbsUp, postComment } from '@/actions';
 import { ThumbsUpButton } from './ThumbsUpButton';
+import { ModalComment } from '../ModalComment';
 
 export const CardPost = ({ post }) => {
     // we can use bind to pass additional arguments to a Server Action
     const submitThumbsUp = incrementThumbsUp.bind(null, post);
-    
+    const submitComment = postComment.bind(null, post);
+
     return (
         <article className={styles.container}>
             <header className={styles.header}>
@@ -33,10 +35,16 @@ export const CardPost = ({ post }) => {
                     </Link>
                 </section>
                 <footer className={styles.footer}>
-                    <form action={submitThumbsUp}>
-                        <ThumbsUpButton />
-                        <p>{post.likes}</p>
-                    </form>
+                    <div className={styles.actions}>
+                        <form action={submitThumbsUp}>
+                            <ThumbsUpButton />
+                            <p>{post.likes}</p>
+                        </form>
+                        <div>
+                            <ModalComment action={submitComment} />
+                            <p>{post.comments.length}</p>
+                        </div>
+                    </div>
                     <Avatar
                         imageSrc={post.author.avatar}
                         username={post.author.username}

@@ -61,3 +61,8 @@
     text-align: center;
     font-size: 15px;
 }
+
+.actions {
+    display: flex;
+    column-gap: 16px;
+}

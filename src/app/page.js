@@ -3,6 +3,7 @@ import { CardPost } from "@/components/CardPost";
 import logger from "@/logger";
 import Link from 'next/link';
 import db from '../../prisma/db';
+import { Modal } from '@/components/Modal';
 
 const ITEMS_PER_PAGE = 4;
 
@@ -38,13 +39,17 @@ const getAllPosts = async (page, searchTerm) => {
       // use include property to also return data of another table
       // when there's a relationship between them (similar to a JOIN)
       include: {
-        author: true
+        author: true,
+        comments: true
       },
       // pagination
       take: ITEMS_PER_PAGE,
       skip,
       // sorting 
-      orderBy: { createdAt: 'desc' }
+      orderBy: [
+        { createdAt: 'desc' },
+        { id: 'desc'}
+      ]
     });
     return { data: posts, prev, next };
   }
@@ -65,6 +70,7 @@ export default async function Home({ searchParams }) {
   const { data: posts, prev, next } = await getAllPosts(currentPage, searchTerm);
   return (
     <main>
+      <Modal />
       <div className={styles.posts}>
         {posts.map(post => <CardPost post={post} key={post.id} />)}
       </div>

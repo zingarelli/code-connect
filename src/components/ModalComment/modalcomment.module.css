@@ -1,0 +1,29 @@
+.title {
+    margin: 0 0 16px 0;
+    font-size: 31px;
+    font-weight: 400;
+    color: var(--light-green)
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.text {
+    box-sizing: border-box;
+    padding: 16px;
+    margin-bottom: 24px;
+    width: 100%;
+    height: 96px;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    color: #3E3E3F;
+}
+
+.text::placeholder {
+    font-size: 18px;
+    color: #3E3E3F;
+}
