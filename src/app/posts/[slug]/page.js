@@ -1,12 +1,11 @@
 import styles from "./page.module.css";
-import { Avatar } from "@/components/Avatar";
 import logger from "@/logger";
-import Image from "next/image";
 import { remark } from "remark";
 import html from "remark-html";
 import db from "../../../../prisma/db";
 import { redirect } from "next/navigation";
 import { CardPost } from "@/components/CardPost";
+import { CommentList } from "@/components/CommentList";
 
 const markdownToHtml = async (data) => {
     const processedContent = await remark()
@@ -22,8 +21,13 @@ const getPostBySlug = async (slug) => {
                 slug
             },
             include: {
-                author: true,
-                comments: true
+                author: true, // author of the post
+                // nested relationships
+                comments: {
+                    include: {
+                        author: true // author of a comment
+                    }
+                }
             }
         });
 
@@ -54,6 +58,7 @@ const PagePost = async ({ params }) => {
             <h2 className={styles.codeTitle}>Código:</h2>
             <div className={styles.markdown} dangerouslySetInnerHTML={{ __html: post.markdown }} />
         </section>
+        <CommentList comments={post.comments} />
     </>);
 }
 export default PagePost;

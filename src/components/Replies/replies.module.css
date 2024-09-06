@@ -1,0 +1,20 @@
+.button {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--dark-gray);
+    border: none;
+    background-color: transparent;
+    position: relative;
+    padding-left: 40px;
+    cursor: pointer;
+}
+
+.button::before {
+    content: "";
+    width: 32px;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    height: 1px;
+    background-color: var(--dark-gray);
+}

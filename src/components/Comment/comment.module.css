@@ -1,0 +1,16 @@
+.comment {
+    display: flex;
+    column-gap: 8px;
+    align-items: center;
+    color: var(--dark-gray);
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.comment p {
+    margin: 0;
+}
+
+.author {
+    font-weight: 600;
+}
