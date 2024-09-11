@@ -1,6 +1,7 @@
 import styles from "./commentlist.module.css";
 import { Comment } from "../Comment";
 import { Replies } from "../Replies";
+import { ModalReply } from "../ModalReply";
 
 export const CommentList = ({ comments }) => {
     return (<>
@@ -10,8 +11,8 @@ export const CommentList = ({ comments }) => {
                 <ul className={styles.list}>
                     {comments.map(item => <li key={item.id} className={styles.item}>
                         <Comment comment={item} />
-                        <p className={styles.reply}>Responder</p>
-                        <Replies />
+                        <ModalReply comment={item} />
+                        <Replies comment={item} />
                     </li>)}
                 </ul>
             </section>

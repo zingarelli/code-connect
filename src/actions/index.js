@@ -51,3 +51,34 @@ export async function postComment(post, formData) {
     revalidatePath('/');
     revalidatePath(`/${post.slug}`);
 }
+
+// add a reply to a comment associated to a post
+// for now, we will hard-code the author of the comment with
+// the user created in /prisma/seed.js
+export async function postReply(parent, formData) {
+    const author = await db.user.findFirst({
+        where: {
+            username: 'anabeatriz_dev'
+        }
+    });
+
+    const post = await db.post.findFirst({
+        where: {
+            id: parent.postId
+        }
+    });
+
+    await db.comment.create({
+        data: {
+            text: formData.get('text'),
+            authorId: author.id,
+            postId: post.id,
+            // we will have only one level of replies; when a 
+            // reply is for another reply (2nd level) and so on,
+            // we will use the parentId of the parent
+            parentId: parent.parentId ?? parent.id
+        }
+    });
+
+    revalidatePath(`/${post.slug}`);
+}

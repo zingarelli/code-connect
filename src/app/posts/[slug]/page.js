@@ -25,7 +25,11 @@ const getPostBySlug = async (slug) => {
                 // nested relationships
                 comments: {
                     include: {
-                        author: true // author of a comment
+                        author: true, // author of a comment
+                    },
+                    // get only first level comments
+                    where : {
+                        parentId: null
                     }
                 }
             }

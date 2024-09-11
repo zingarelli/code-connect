@@ -10,12 +10,13 @@
     padding: 24px;
     background-color: #3E3E3F;
     border: none;
-    border-radius: 0 0 32px 32px;
+    border-radius: 32px;
 }
 
 .header {
   display: flex;
   justify-content: flex-end;
+  margin-bottom: 24px;
 }
 
 .closeBtn {

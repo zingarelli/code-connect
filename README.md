@@ -232,7 +232,7 @@ const { PrismaClient } = require('@prisma/client'); // neste caso, precisamos us
 const prisma = new PrismaClient();
 
 async function main() {
-    // --- creating author "Ana Beatriz"
+    // --- data for author "Ana Beatriz"
     const author = {
         name: "Ana Beatriz",
         username: "anabeatriz_dev",
@@ -246,8 +246,6 @@ async function main() {
         update: {}, // we won't perform any updates for now
         create: author
     });
-
-    console.log('Author created: ', ana);
 }
 
 main()
@@ -265,7 +263,7 @@ main()
 
 Por meio do prisma client, podemos acessar as **tabelas** do banco (os models no `schema.prisma`) como se fossem **objetos do client**. Esses objetos possuem métodos para fazer consultas.
 
-No exemplo a seguir, usamos o método **`findMany`** para recuperar os dados da tabela post. Essa tabela possui uma relação com a tabela author (uma chave estrangeira para o id do autor), então podemos passar via parâmetro um objeto de configuração com a propriedade `include` para também recuperar dados da tabela author. Além disso, também está implementada a lógica para paginação (utilizando as propriedades `take` e `skip`) e a ordenação pela data de criação do post (propriedade `orderBy`);
+No exemplo a seguir, usamos o método **`findMany`** para recuperar os dados da tabela post. Essa tabela possui uma relação com a tabela author (uma chave estrangeira para o id do autor), então podemos passar via parâmetro um objeto de configuração com a propriedade `include` para também recuperar dados da tabela author. Além disso, também está implementada a lógica para paginação (utilizando as propriedades `take` e `skip`) e a ordenação pela data de criação do post (propriedade `orderBy`):
 
 ```js
 import db from '../../prisma/db';
@@ -305,6 +303,20 @@ const getAllPosts = async (page) => {
     logger.error(`[${new Date().toString()}] Função getAllPosts --> erro de conexão com a API: ${error}`);
     return { data: [], prev: null, next: null };
   }
+}
+```
+
+A propriedade `include` pode ser **aninhada**. Por exemplo, se na tabela author houvesse relação com uma tabela comment e quiséssemos também trazer os dados dessa outra tabela, poderíamos adicionar um `include` aninhado. Exemplo: 
+
+```js
+include: {
+    author: true, // author of the post
+    // nested relationships
+    comments: {
+        include: {
+            author: true // author of a comment
+        }
+    }
 }
 ```
 
@@ -468,9 +480,9 @@ Um exemplo comum é invocá-las na submissão de um formulário, usando o atribu
 
 Ao criar uma server action, é uma **boa prática deixar explícito** no arquivo que a função deve ser executada no servidor, utilizando a diretiva `'use server'`. 
 
-Outra boa prática é colocar as actions em uma pasta separada, por exemplo: `src/actions/index.js`.
+Outra boa prática é colocar as actions em uma pasta separada. Por exemplo, criar um arquivo `src/actions/index.js` e dentro dele exportar as actions.
 
-Exemplo de Server Action para incrementar o número de curtidas: 
+Exemplo de Server Action para incrementar o número de curtidas. Observe que usamos o método `update` do Prisma: 
 
 ```js
 // explicit tell Next that this file is to run in the server
@@ -556,5 +568,54 @@ export const ThumbsUpButton = () => {
     return <IconButton disabled={pending}>
         {pending ? <Spinner /> : <ThumbsUp />}
     </IconButton>
+}
+```
+
+#### Valores de formulário
+
+Quando uma Server Action é chamada via **`action` de um elemento `form`**, o Next automaticamente **injeta um objeto [`formData`](https://developer.mozilla.org/en-US/docs/Web/API/FormData/FormData)** como último argumento da função. Este objeto contém os valores de cada elemento dentro do formulário, que podem ser acessados por um método `get` passando o atributo `name` desses elementos.
+
+O exemplo abaixo é parte de um código de uma Server Action que faz a inserção de comentários em um post. Observe que `formData` aparece como último parâmetro da função. Esse parâmetro **não** é passado pelo componente que chama a função, e sim injetado automaticamente pelo Next. Também observe que usamos o **método `create`** do Prisma para fazer a **inserção no banco de dados**:
+
+```js
+export async function postComment(post, formData) {
+    await db.comment.create({
+        data: {
+            text: formData.get('text'),
+            authorId: author.id,
+            postId: post.id
+        }
+    });
+}
+```
+
+### Criando endpoints
+
+Além de exibir páginas com o arquivo `pages.js`, você também pode usar a App Router para criar **endpoints no servidor para retornar ou receber dados**, ou seja, usar o Next como uma API para tratar requests e responses.
+
+Para isso, você cria um **arquivo `route.js`**. Dentro deste arquivo, você pode criar funções para os verbos HTTP, como GET, POST, etc. Estas funções possuem dois parâmetros opcionais: o `request`, um [objeto representando a Request](https://nextjs.org/docs/app/api-reference/functions/next-request), e o `context`, um objeto cuja única propriedade atualmente é a `params`, que por sua vez é o objeto que o Next disponibiliza para acessar as rotas dinâmicas.
+
+Um exemplo de organização de projeto é, dentro da pasta `app`, criar uma pasta `api` e nela definir as rotas (endpoints) para lidar com requisições.
+
+O exemplo abaixo cria uma função que irá retornar as respostas a um comentário usando o endpoint `api/comment/[id]/replies`, cujo id é acessado por uma rota dinâmica (`[id]`).
+
+```js
+// -- api/comment/[id]/replies/route.js
+import db from "../../../../../../prisma/db"
+
+// we add underline to indicate that the 
+// request parameter will not be used
+export const GET = async (_request, { params }) => {
+    const replies = await db.comment.findMany({
+        where: {
+            parentId: parseInt(params.id)
+        },
+        include: {
+            author: true
+        }
+    });
+
+    // Response is an interface of the Fetch API
+    return Response.json(replies);
 }
 ```

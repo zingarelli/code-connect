@@ -16,16 +16,17 @@
     list-style: none;
 }
 
+.item {
+    display: flex;
+    flex-direction: column;
+    row-gap: 8px;
+    align-items: flex-start;
+}
+
 .item:not(:last-child)::after {
     content: '';
     border-top: 1px solid #3E3E3E;
     width: 100%;
     display: block;
     margin: 16px 0;
-}
-
-.reply {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--dark-gray);
 }

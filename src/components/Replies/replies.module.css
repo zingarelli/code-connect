@@ -18,3 +18,17 @@
     height: 1px;
     background-color: var(--dark-gray);
 }
+
+.list {
+    margin: 0 0 0 40px;
+    padding: 0;
+    list-style: none;
+}
+
+.list>li{
+    display: flex;
+    flex-direction: column;
+    row-gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
