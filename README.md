@@ -1,6 +1,6 @@
 # Code Connect
 
-Uma rede social para Devs. Projeto em andamento, desenvolvido em Next.js versão 14. Atualmente, uma lista de posts é exibida, sendo possível clicar em um post para ver o conteúdo completo. Há também um mecanismo de busca por título de um post.
+Uma rede social para Devs. Projeto desenvolvido em Next.js versão 14. Uma lista de posts é exibida, sendo possível clicar em um post para ver o conteúdo completo. Há também um mecanismo de busca por título de um post. Além disso, é possível "curtir" um post e adicionar comentários.
 
 | :placard: Vitrine.Dev |     |
 | -------------  | --- |
@@ -37,7 +37,7 @@ O projeto está **em evolução**, com novas tecnologias e soluções sendo adic
 
 A **branch main** contém a versão inicial do projeto, que utiliza um Back End mockado pelo JSON Server.
 
-A **branch postgres_prisma** fornece uma solução FullStack completa, com Front e Back End. Nela, criamos um contêiner no Docker para subir um banco Postgres, e utilizamos o Prisma para popular o banco e fazer as consultas. Por fim, é feito o deploy na Vercel, e o projeto pode ser visto [neste link](https://code-connect-eosin.vercel.app). 
+A **branch postgres_prisma** fornece uma solução FullStack completa, com Front e Back End. Nela, criamos um contêiner no Docker para subir um banco Postgres, e utilizamos o Prisma para popular o banco e fazer as consultas. Por fim, é feito o deploy na Vercel, e o projeto pode ser visto [neste link](https://code-connect-eosin.vercel.app).  Nessa branch também estão inclusas as mecânicas para curtir um post e também adicionar comentários e respostas a comentários.
 
 Informações sobre cada tecnologia utilizada podem ser vistas na [Seção Detalhes Técnicos](#detalhes-técnicos).
 
@@ -118,6 +118,97 @@ export default async function Home({ searchParams }) {
 ```
 
 A prop **`searchParams`** é fornecida pelo Next para acessarmos os parâmetros contidos na query string da URL da página. O acesso é feito como se fosse um objeto.
+
+### Monitoramento de logs usando o winston
+
+O "winston" é uma biblioteca especializada em criar diferentes tipos de logs para uma aplicação.
+
+O [repositório do projeto](https://github.com/winstonjs/winston) no GitHub possui exemplos e a documentação.
+
+Criando um logger:
+
+```js
+import { createLogger, format, transports } from 'winston';
+const logger = createLogger({
+    level: 'info',
+    format: format.json(),
+    transports: [
+        //
+        // - Write all logs with importance level of `error` or less to `error.log`
+        // - Write all logs with importance level of `info` or less to `combined.log`
+        //
+        new transports.File({ filename: 'error.log', level: 'error' }),
+        new transports.File({ filename: 'combined.log' }),
+    ],
+});
+export default logger;
+```
+
+O winston trabalha com níveis de log: error, warn, info, http, verbose, debug, silly. O nível "error" é o mais severo e importante (valor 0) e o "silly" é o menos importante (valor 6). Quando informado o nível no `createLogger` (`level`), ele só irá criar logs daquele nível para baixo.
+
+A propriedade `transports` são os arquivos que serão usados para registrar os logs. Quando informado o `level`, o transport correspondente irá registrar somente os logs daquele nível para baixo.
+
+Você **precisa criar os arquivos** em que os logs serão gravados. Eles devem ser criados na raiz do projeto com o nome que você definiu para cada um no código.
+
+Exemplo de uso:
+
+```jsx
+import logger from "@/logger";
+
+const getAllPosts = async () => {
+  const resp = await fetch('http://localhost:3042/posts');
+  if (!resp.ok) {
+    // using winston for logging
+    logger.error('Função getAllPosts --> erro ao obter as postagens da API');
+    return [];
+  }
+  logger.info('Função getAllPosts --> posts obtidos com sucesso');
+  return resp.json();
+}
+```
+
+### Exibição de markdown usando remark
+
+O Code Connect exibe postagens de tecnologia e, dentre o conteúdo em cada postagem, há uma seção que exibe códigos. Esses códigos são escritos em formato markdown.
+
+O [`remark`](https://github.com/remarkjs/remark) é uma biblioteca sugerida pelo Next para renderizar conteúdo markdown. Ele possui um plugin `remark-html` para conversão do conteúdo markdown para HTML.
+
+Instalação:
+
+    npm i remark remark-html
+
+Exemplo de uso convertendo um conteúdo markdown para HTML:
+
+```jsx
+// -- app/posts/[slug]/page.js
+import { remark } from "remark";
+import html from "remark-html";
+
+const markdownToHtml = async (data) => {
+    const processedContent = await remark()
+        .use(html) // html plugin for remark
+        .process(data) // markdown data
+    return processedContent.toString();
+}
+
+const getPostBySlug = async (slug) => {
+    // code omitted
+    // assume data is an array of objects 
+    // retrieved from the API
+    const post = data[0];
+    post.markdown = await markdownToHtml(post.markdown);
+    return post;
+}
+
+const PagePost = async ({ params }) => {
+    const post = await getPostBySlug(params.slug);
+
+    return (
+        <div dangerouslySetInnerHTML={{ __html: post.markdown }} />   
+    );
+}
+export default PagePost;
+```
 
 ### Versão FullStack
 
@@ -366,97 +457,6 @@ Na Vercel, precisamos adicionar um banco Postgres, disponibilizado pela platafor
 - Use todas as opções padrão nas próximas janelas.
 
 > A página do projeto na Vercel só aparece após o primeiro deploy. Então faça o primeiro deploy, que irá gerar um erro por não ter um banco de dados, e aí então crie um banco Postgres e faça um redeploy.
-
-### Monitoramento de logs usando o winston
-
-O "winston" é uma biblioteca especializada em criar diferentes tipos de logs para uma aplicação.
-
-O [repositório do projeto](https://github.com/winstonjs/winston) no GitHub possui exemplos e a documentação.
-
-Criando um logger:
-
-```js
-import { createLogger, format, transports } from 'winston';
-const logger = createLogger({
-    level: 'info',
-    format: format.json(),
-    transports: [
-        //
-        // - Write all logs with importance level of `error` or less to `error.log`
-        // - Write all logs with importance level of `info` or less to `combined.log`
-        //
-        new transports.File({ filename: 'error.log', level: 'error' }),
-        new transports.File({ filename: 'combined.log' }),
-    ],
-});
-export default logger;
-```
-
-O winston trabalha com níveis de log: error, warn, info, http, verbose, debug, silly. O nível "error" é o mais severo e importante (valor 0) e o "silly" é o menos importante (valor 6). Quando informado o nível no `createLogger` (`level`), ele só irá criar logs daquele nível para baixo.
-
-A propriedade `transports` são os arquivos que serão usados para registrar os logs. Quando informado o `level`, o transport correspondente irá registrar somente os logs daquele nível para baixo.
-
-Você **precisa criar os arquivos** em que os logs serão gravados. Eles devem ser criados na raiz do projeto com o nome que você definiu para cada um no código.
-
-Exemplo de uso:
-
-```jsx
-import logger from "@/logger";
-
-const getAllPosts = async () => {
-  const resp = await fetch('http://localhost:3042/posts');
-  if (!resp.ok) {
-    // using winston for logging
-    logger.error('Função getAllPosts --> erro ao obter as postagens da API');
-    return [];
-  }
-  logger.info('Função getAllPosts --> posts obtidos com sucesso');
-  return resp.json();
-}
-```
-
-### Exibição de markdown usando remark
-
-O Code Connect exibe postagens de tecnologia e, dentre o conteúdo em cada postagem, há uma seção que exibe códigos. Esses códigos são escritos em formato markdown.
-
-O [`remark`](https://github.com/remarkjs/remark) é uma biblioteca sugerida pelo Next para renderizar conteúdo markdown. Ele possui um plugin `remark-html` para conversão do conteúdo markdown para HTML.
-
-Instalação:
-
-    npm i remark remark-html
-
-Exemplo de uso convertendo um conteúdo markdown para HTML:
-
-```jsx
-// -- app/posts/[slug]/page.js
-import { remark } from "remark";
-import html from "remark-html";
-
-const markdownToHtml = async (data) => {
-    const processedContent = await remark()
-        .use(html) // html plugin for remark
-        .process(data) // markdown data
-    return processedContent.toString();
-}
-
-const getPostBySlug = async (slug) => {
-    // code omitted
-    // assume data is an array of objects 
-    // retrieved from the API
-    const post = data[0];
-    post.markdown = await markdownToHtml(post.markdown);
-    return post;
-}
-
-const PagePost = async ({ params }) => {
-    const post = await getPostBySlug(params.slug);
-
-    return (
-        <div dangerouslySetInnerHTML={{ __html: post.markdown }} />   
-    );
-}
-export default PagePost;
-```
 
 ### Server Actions
 
